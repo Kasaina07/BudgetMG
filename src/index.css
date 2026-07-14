@@ -1,0 +1,109 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Sora:wght@600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 40% 98%;
+    --foreground: 215 28% 17%;
+    --card: 0 0% 100%;
+    --card-foreground: 215 28% 17%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 28% 17%;
+    --primary: 217 37% 17%;
+    --primary-foreground: 210 40% 96%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 215 28% 17%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 135 26% 65%;
+    --accent-foreground: 142 33% 20%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+    --success: 135 28% 60%;
+    --success-foreground: 142 40% 18%;
+    --warning: 32 85% 50%;
+    --warning-foreground: 0 0% 100%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 217 37% 17%;
+    --chart-1: 217 37% 17%;
+    --chart-2: 135 28% 60%;
+    --chart-3: 213 25% 50%;
+    --chart-4: 32 85% 50%;
+    --chart-5: 340 40% 60%;
+    --radius: 0.75rem;
+    --font-heading: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Sora', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --sidebar-background: 217 37% 17%;
+    --sidebar-foreground: 210 40% 96%;
+    --sidebar-primary: 210 40% 96%;
+    --sidebar-primary-foreground: 217 37% 17%;
+    --sidebar-accent: 210 40% 22%;
+    --sidebar-accent-foreground: 210 40% 96%;
+    --sidebar-border: 217 30% 25%;
+    --sidebar-ring: 135 28% 60%;
+  }
+
+  .dark {
+    --background: 217 37% 10%;
+    --foreground: 210 40% 96%;
+    --card: 217 37% 13%;
+    --card-foreground: 210 40% 96%;
+    --popover: 217 37% 13%;
+    --popover-foreground: 210 40% 96%;
+    --primary: 210 40% 96%;
+    --primary-foreground: 217 37% 17%;
+    --secondary: 217 30% 18%;
+    --secondary-foreground: 210 40% 96%;
+    --muted: 217 30% 18%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 135 28% 60%;
+    --accent-foreground: 142 40% 18%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 98%;
+    --success: 135 28% 60%;
+    --success-foreground: 142 40% 18%;
+    --warning: 32 85% 55%;
+    --warning-foreground: 0 0% 10%;
+    --border: 217 30% 22%;
+    --input: 217 30% 22%;
+    --ring: 210 40% 96%;
+    --chart-1: 210 40% 96%;
+    --chart-2: 135 28% 60%;
+    --chart-3: 213 25% 60%;
+    --chart-4: 32 85% 55%;
+    --chart-5: 340 50% 65%;
+    --sidebar-background: 217 37% 13%;
+    --sidebar-foreground: 210 40% 96%;
+    --sidebar-primary: 210 40% 96%;
+    --sidebar-primary-foreground: 217 37% 17%;
+    --sidebar-accent: 217 30% 18%;
+    --sidebar-accent-foreground: 210 40% 96%;
+    --sidebar-border: 217 30% 20%;
+    --sidebar-ring: 135 28% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+  }
+
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type=number] {
+    -moz-appearance: textfield;
+  }
+}
