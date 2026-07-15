@@ -35,7 +35,7 @@ export default function Layout() {
       <div className="md:hidden sticky top-0 z-30 flex items-center justify-between bg-primary px-4 py-3 text-primary-foreground">
         <div className="flex items-center gap-2 font-heading font-semibold">
           <Wallet className="h-5 w-5" />
-          Budget MGA
+          Budget MG
         </div>
         <div className="flex items-center gap-3">
           <SyncStatus />
@@ -58,7 +58,7 @@ export default function Layout() {
               <Wallet className="h-5 w-5" />
             </span>
             <div>
-              <p className="font-heading font-semibold leading-tight">Budget MGA</p>
+              <p className="font-heading font-semibold leading-tight">Budget MG</p>
               <p className="text-xs text-primary-foreground/60">Ariary · 2026</p>
             </div>
           </div>
