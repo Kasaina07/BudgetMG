@@ -89,7 +89,7 @@ export default function Login() {
                 required
                 value={form.email}
                 onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                placeholder="Rakoto@gmail.com"
+                placeholder="ex:Rakoto@gmail.com"
               />
             </div>
             <div className="space-y-1.5">
