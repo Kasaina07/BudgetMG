@@ -81,6 +81,20 @@ export function AuthProvider({ children }) {
     setSession(null);
   }, []);
 
+  /** Envoie un e-mail contenant un lien de réinitialisation du mot de passe. */
+  const resetPassword = useCallback(async (email) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) throw error;
+  }, []);
+
+  /** Définit un nouveau mot de passe. À utiliser uniquement après avoir suivi le lien reçu par e-mail. */
+  const updatePassword = useCallback(async (newPassword) => {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) throw error;
+  }, []);
+
   const value = {
     session,
     user: session?.user ?? null,
@@ -89,6 +103,8 @@ export function AuthProvider({ children }) {
     signUp,
     signIn,
     signOut,
+    resetPassword,
+    updatePassword,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

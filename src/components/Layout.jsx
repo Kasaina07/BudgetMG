@@ -44,8 +44,8 @@ export default function Layout() {
               <Wallet className="h-5 w-5" />
             </span>
             <div>
-              <p className="font-heading font-semibold leading-tight">Budget MGA</p>
-              <p className="text-xs text-primary-foreground/60">Ariary · 2026</p>
+              <p className="font-heading font-semibold leading-tight">Budget MG</p>
+              <p className="text-xs text-primary-foreground/60">budget · 2026</p>
             </div>
           </div>
           <button className="md:hidden" onClick={() => setOpen(false)} aria-label="Fermer">
@@ -81,6 +81,9 @@ export default function Layout() {
           <p className="px-3 text-xs text-primary-foreground/50 truncate mb-2">
             {user?.email}
           </p>
+          <p className="px-3 text-[10px] text-primary-foreground/40 mb-2">
+            © {new Date().getFullYear()} Kasaina
+          </p>
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-primary-foreground/70 hover:bg-primary-foreground/10 hover:text-primary-foreground transition-colors"
@@ -100,6 +103,9 @@ export default function Layout() {
 
       <main className="md:pl-64 pb-20 md:pb-0">
         <Outlet />
+        <p className="px-4 md:px-6 py-4 text-center text-[11px] text-muted-foreground">
+          © {new Date().getFullYear()} Kasaina. Tous droits réservés.
+        </p>
       </main>
 
       <BottomNav />

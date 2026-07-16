@@ -8,6 +8,7 @@ import Layout from "@/components/Layout";
 import RequireAuth from "@/components/RequireAuth";
 import { AuthProvider } from "@/hooks/useAuth";
 import Login from "@/pages/Login";
+import ResetPassword from "@/pages/ResetPassword";
 import Dashboard from "@/pages/Dashboard";
 import Transactions from "@/pages/Transactions";
 import Budget from "@/pages/Budget";
@@ -21,6 +22,7 @@ function App() {
           <ScrollToTop />
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route
               element={
                 <RequireAuth>

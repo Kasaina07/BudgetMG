@@ -9,7 +9,7 @@ export const CATEGORY_GROUPS = [
     type: "Dépense",
     categories: [
       "Logement / Loyer",
-      "Factures (Eau, Électricité, Internet)",
+      "Factures (Eau, Électricité, Internet,...)",
       "Assurances",
       "Abonnements",
     ],
