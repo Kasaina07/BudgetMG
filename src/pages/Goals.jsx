@@ -4,9 +4,66 @@ import { Plus, Trash2, Target, PiggyBank } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import EmptyState from "@/components/EmptyState";
 import { CardSkeleton } from "@/components/Skeletons";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { formatMGA } from "@/lib/budgetCategories";
 
 const emptyForm = { name: "", target_amount: "", current_amount: "" };
+
+/** Champs du formulaire, partagés entre la carte desktop et la feuille modale mobile. */
+function GoalFormFields({ form, setForm, saving, stacked }) {
+  return (
+    <>
+      <div>
+        <label className="text-xs font-medium text-muted-foreground">Nom de l'objectif</label>
+        <input
+          type="text"
+          value={form.name}
+          onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+          placeholder="Ex : Fonds d'urgence"
+          className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          required
+        />
+      </div>
+      <div>
+        <label className="text-xs font-medium text-muted-foreground">Montant cible (MGA)</label>
+        <input
+          type="number"
+          inputMode="decimal"
+          value={form.target_amount}
+          onChange={(e) => setForm((f) => ({ ...f, target_amount: e.target.value }))}
+          placeholder="0"
+          className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-right tabular-nums focus:outline-none focus:ring-2 focus:ring-ring"
+          required
+        />
+      </div>
+      <div className={stacked ? "" : "flex gap-2"}>
+        <div className="flex-1">
+          <label className="text-xs font-medium text-muted-foreground">Déjà épargné (MGA)</label>
+          <input
+            type="number"
+            inputMode="decimal"
+            value={form.current_amount}
+            onChange={(e) => setForm((f) => ({ ...f, current_amount: e.target.value }))}
+            placeholder="0"
+            className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-right tabular-nums focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={saving}
+          className={
+            stacked
+              ? "mt-3 w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium px-3 py-2.5 min-h-[44px] hover:bg-primary/90 disabled:opacity-50"
+              : "mt-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium px-3 py-2 h-[38px] hover:bg-primary/90 disabled:opacity-50 shrink-0"
+          }
+        >
+          <Plus className="h-4 w-4" />
+          Ajouter
+        </button>
+      </div>
+    </>
+  );
+}
 
 export default function Goals() {
   const { goals, loading, addGoal, removeGoal, addFunds } = useSavingsGoals();
@@ -14,6 +71,7 @@ export default function Goals() {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [addAmounts, setAddAmounts] = useState({});
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -27,6 +85,7 @@ export default function Goals() {
       });
       toast({ title: "Objectif créé", description: form.name });
       setForm(emptyForm);
+      setSheetOpen(false);
     } finally {
       setSaving(false);
     }
@@ -59,50 +118,9 @@ export default function Goals() {
 
       <form
         onSubmit={handleSubmit}
-        className="bg-card rounded-2xl border border-border p-5 shadow-sm grid grid-cols-1 sm:grid-cols-3 gap-3 items-end"
+        className="hidden md:grid bg-card rounded-2xl border border-border p-5 shadow-sm grid-cols-1 sm:grid-cols-3 gap-3 items-end"
       >
-        <div>
-          <label className="text-xs font-medium text-muted-foreground">Nom de l'objectif</label>
-          <input
-            type="text"
-            value={form.name}
-            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-            placeholder="Ex : Fonds d'urgence"
-            className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            required
-          />
-        </div>
-        <div>
-          <label className="text-xs font-medium text-muted-foreground">Montant cible (MGA)</label>
-          <input
-            type="number"
-            value={form.target_amount}
-            onChange={(e) => setForm((f) => ({ ...f, target_amount: e.target.value }))}
-            placeholder="0"
-            className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-right tabular-nums focus:outline-none focus:ring-2 focus:ring-ring"
-            required
-          />
-        </div>
-        <div className="flex gap-2">
-          <div className="flex-1">
-            <label className="text-xs font-medium text-muted-foreground">Déjà épargné (MGA)</label>
-            <input
-              type="number"
-              value={form.current_amount}
-              onChange={(e) => setForm((f) => ({ ...f, current_amount: e.target.value }))}
-              placeholder="0"
-              className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-right tabular-nums focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={saving}
-            className="mt-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium px-3 py-2 h-[38px] hover:bg-primary/90 disabled:opacity-50 shrink-0"
-          >
-            <Plus className="h-4 w-4" />
-            Ajouter
-          </button>
-        </div>
+        <GoalFormFields form={form} setForm={setForm} saving={saving} stacked={false} />
       </form>
 
       {loading ? (
@@ -134,7 +152,7 @@ export default function Goals() {
                   </div>
                   <button
                     onClick={() => handleDelete(g)}
-                    className="p-1.5 rounded-lg hover:bg-red-50 text-red-500 shrink-0"
+                    className="p-2.5 md:p-1.5 min-h-[44px] md:min-h-0 min-w-[44px] md:min-w-0 flex items-center justify-center rounded-lg hover:bg-red-50 text-red-500 shrink-0"
                     title="Supprimer"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
@@ -154,14 +172,15 @@ export default function Goals() {
                 <div className="flex gap-2">
                   <input
                     type="number"
+                    inputMode="decimal"
                     placeholder="Ajouter un montant"
                     value={addAmounts[g.id] || ""}
                     onChange={(e) => setAddAmounts((prev) => ({ ...prev, [g.id]: e.target.value }))}
-                    className="flex-1 rounded-xl border border-border bg-background px-3 py-1.5 text-sm text-right tabular-nums focus:outline-none focus:ring-2 focus:ring-ring"
+                    className="flex-1 rounded-xl border border-border bg-background px-3 py-2 md:py-1.5 text-sm text-right tabular-nums focus:outline-none focus:ring-2 focus:ring-ring"
                   />
                   <button
                     onClick={() => handleAddFunds(g)}
-                    className="rounded-xl border border-border px-3 py-1.5 text-sm font-medium hover:bg-muted"
+                    className="rounded-xl border border-border px-3 py-2 md:py-1.5 min-h-[44px] md:min-h-0 text-sm font-medium hover:bg-muted"
                   >
                     +
                   </button>
@@ -171,6 +190,26 @@ export default function Goals() {
           })}
         </div>
       )}
+
+      <button
+        type="button"
+        onClick={() => setSheetOpen(true)}
+        className="md:hidden fixed right-4 bottom-24 z-30 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center active:scale-95 transition-transform"
+        aria-label="Ajouter un objectif"
+      >
+        <Plus className="h-6 w-6" />
+      </button>
+
+      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+        <SheetContent side="bottom" className="md:hidden rounded-t-2xl max-h-[85vh] overflow-y-auto">
+          <SheetHeader className="text-left mb-2">
+            <SheetTitle>Nouvel objectif</SheetTitle>
+          </SheetHeader>
+          <form onSubmit={handleSubmit} className="space-y-4 pb-4">
+            <GoalFormFields form={form} setForm={setForm} saving={saving} stacked />
+          </form>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

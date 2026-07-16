@@ -81,6 +81,7 @@ export default function Budget() {
                           <td key={m} className="px-1 py-1">
                             <input
                               type="number"
+                              inputMode="decimal"
                               // La clé inclut la valeur : si elle change ailleurs (sync cloud),
                               // React remonte le champ avec la bonne valeur par défaut.
                               key={`${cat}-${m}-${value}`}

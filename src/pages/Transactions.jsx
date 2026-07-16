@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
 import { useTransactions } from "@/hooks/useTransactions";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Plus, Trash2, Pencil, X, Check, Receipt, Search, FileDown, FileSpreadsheet } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import EmptyState from "@/components/EmptyState";
 import { TableSkeleton } from "@/components/Skeletons";
 import { exportTransactionsToPDF, exportTransactionsToExcel } from "@/lib/export";
@@ -20,7 +22,82 @@ const emptyForm = {
   amount: "",
 };
 
+/** Champs du formulaire, réutilisés à l'identique dans la carte desktop et la feuille mobile. */
+function TransactionFormFields({ form, setForm, handleCategoryChange, editingId, cancelEdit, saving, layout }) {
+  return (
+    <>
+      <div className={layout === "sheet" ? "" : "lg:col-span-1"}>
+        <label className="text-xs font-medium text-muted-foreground">Date</label>
+        <input
+          type="date"
+          value={form.date}
+          onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
+          className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          required
+        />
+      </div>
+      <div className={layout === "sheet" ? "" : "lg:col-span-2"}>
+        <label className="text-xs font-medium text-muted-foreground">Description</label>
+        <input
+          type="text"
+          value={form.description}
+          onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+          placeholder="Ex : Courses Jumbo Score"
+          className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          required
+        />
+      </div>
+      <div className={layout === "sheet" ? "" : "lg:col-span-1"}>
+        <label className="text-xs font-medium text-muted-foreground">Catégorie</label>
+        <select
+          value={form.category}
+          onChange={(e) => handleCategoryChange(e.target.value)}
+          className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          {ALL_CATEGORIES.map((c) => (
+            <option key={c.name} value={c.name}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className={layout === "sheet" ? "" : "lg:col-span-1"}>
+        <label className="text-xs font-medium text-muted-foreground">Montant (MGA)</label>
+        <input
+          type="number"
+          inputMode="decimal"
+          value={form.amount}
+          onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))}
+          placeholder="0"
+          className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-right tabular-nums focus:outline-none focus:ring-2 focus:ring-ring"
+          required
+        />
+      </div>
+      <div className={layout === "sheet" ? "flex gap-2 pt-2" : "lg:col-span-1 flex gap-2"}>
+        <button
+          type="submit"
+          disabled={saving}
+          className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium px-3 py-2.5 hover:bg-primary/90 disabled:opacity-50"
+        >
+          {editingId ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+          {editingId ? "Enregistrer" : "Ajouter"}
+        </button>
+        {editingId && (
+          <button
+            type="button"
+            onClick={cancelEdit}
+            className="inline-flex items-center justify-center rounded-xl border border-border px-3 py-2.5 hover:bg-muted touch-target"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+    </>
+  );
+}
+
 export default function Transactions() {
+  const isMobile = useIsMobile();
   const [monthFilter, setMonthFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [search, setSearch] = useState("");
@@ -35,6 +112,7 @@ export default function Transactions() {
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -65,11 +143,13 @@ export default function Transactions() {
       type: t.type,
       amount: t.amount,
     });
+    if (isMobile) setSheetOpen(true);
   }
 
   function cancelEdit() {
     setEditingId(null);
     setForm(emptyForm);
+    setSheetOpen(false);
   }
 
   async function handleSubmit(e) {
@@ -118,6 +198,8 @@ export default function Transactions() {
     toast({ title: "Export Excel généré", description: `${filtered.length} transaction(s)` });
   }
 
+  const formFieldsProps = { form, setForm, handleCategoryChange, editingId, cancelEdit, saving };
+
   return (
     <div className="p-6 md:p-8 space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -149,13 +231,13 @@ export default function Transactions() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Rechercher une description ou une catégorie…"
-            className="w-full rounded-xl border border-border bg-card pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            className="w-full rounded-xl border border-border bg-card pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
-          className="rounded-xl border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring w-fit"
+          className="rounded-xl border border-border bg-card px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring w-fit"
         >
           <option value="all">Toutes les catégories</option>
           {ALL_CATEGORIES.map((c) => (
@@ -170,7 +252,7 @@ export default function Transactions() {
             onClick={handleExportPDF}
             disabled={filtered.length === 0}
             title="Exporter en PDF"
-            className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-2 text-sm font-medium hover:bg-muted disabled:opacity-40 disabled:pointer-events-none"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-2.5 text-sm font-medium hover:bg-muted disabled:opacity-40 disabled:pointer-events-none"
           >
             <FileDown className="h-4 w-4" />
             PDF
@@ -180,7 +262,7 @@ export default function Transactions() {
             onClick={handleExportExcel}
             disabled={filtered.length === 0}
             title="Exporter en Excel"
-            className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-2 text-sm font-medium hover:bg-muted disabled:opacity-40 disabled:pointer-events-none"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-2.5 text-sm font-medium hover:bg-muted disabled:opacity-40 disabled:pointer-events-none"
           >
             <FileSpreadsheet className="h-4 w-4" />
             Excel
@@ -188,75 +270,12 @@ export default function Transactions() {
         </div>
       </div>
 
+      {/* Formulaire inline — desktop uniquement. Sur mobile, place au FAB + feuille modale ci-dessous. */}
       <form
         onSubmit={handleSubmit}
-        className="bg-card rounded-2xl border border-border p-5 shadow-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 items-end"
+        className="hidden md:grid bg-card rounded-2xl border border-border p-5 shadow-sm grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 items-end"
       >
-        <div className="lg:col-span-1">
-          <label className="text-xs font-medium text-muted-foreground">Date</label>
-          <input
-            type="date"
-            value={form.date}
-            onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
-            className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            required
-          />
-        </div>
-        <div className="lg:col-span-2">
-          <label className="text-xs font-medium text-muted-foreground">Description</label>
-          <input
-            type="text"
-            value={form.description}
-            onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-            placeholder="Ex : Courses Jumbo Score"
-            className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            required
-          />
-        </div>
-        <div className="lg:col-span-1">
-          <label className="text-xs font-medium text-muted-foreground">Catégorie</label>
-          <select
-            value={form.category}
-            onChange={(e) => handleCategoryChange(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-          >
-            {ALL_CATEGORIES.map((c) => (
-              <option key={c.name} value={c.name}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="lg:col-span-1">
-          <label className="text-xs font-medium text-muted-foreground">Montant (MGA)</label>
-          <input
-            type="number"
-            value={form.amount}
-            onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))}
-            placeholder="0"
-            className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-right tabular-nums focus:outline-none focus:ring-2 focus:ring-ring"
-            required
-          />
-        </div>
-        <div className="lg:col-span-1 flex gap-2">
-          <button
-            type="submit"
-            disabled={saving}
-            className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium px-3 py-2 hover:bg-primary/90 disabled:opacity-50"
-          >
-            {editingId ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-            {editingId ? "Enregistrer" : "Ajouter"}
-          </button>
-          {editingId && (
-            <button
-              type="button"
-              onClick={cancelEdit}
-              className="inline-flex items-center justify-center rounded-xl border border-border px-3 py-2 hover:bg-muted"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
-        </div>
+        <TransactionFormFields {...formFieldsProps} layout="inline" />
       </form>
 
       <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
@@ -286,7 +305,7 @@ export default function Transactions() {
                       }
                       description={
                         transactions.length === 0
-                          ? "Ajoutez votre première transaction avec le formulaire ci-dessus."
+                          ? "Ajoutez votre première transaction avec le bouton + ci-dessous."
                           : "Essayez une autre recherche ou réinitialisez les filtres."
                       }
                       className="border-0 rounded-none"
@@ -313,14 +332,14 @@ export default function Transactions() {
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => startEdit(t)}
-                          className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground"
+                          className="p-2 rounded-lg hover:bg-muted text-muted-foreground touch-target"
                           title="Modifier"
                         >
                           <Pencil className="h-3.5 w-3.5" />
                         </button>
                         <button
                           onClick={() => handleDelete(t)}
-                          className="p-1.5 rounded-lg hover:bg-red-50 text-red-500"
+                          className="p-2 rounded-lg hover:bg-red-50 text-red-500 touch-target"
                           title="Supprimer"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -334,6 +353,30 @@ export default function Transactions() {
           </table>
         </div>
       </div>
+
+      {/* Bouton flottant — mobile uniquement. Ouvre le formulaire en feuille modale. */}
+      <button
+        type="button"
+        onClick={() => {
+          if (!editingId) setForm(emptyForm);
+          setSheetOpen(true);
+        }}
+        aria-label="Ajouter une transaction"
+        className="md:hidden fixed z-20 right-4 bottom-[calc(env(safe-area-inset-bottom)+72px)] h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center active:scale-95 transition-transform"
+      >
+        <Plus className="h-6 w-6" />
+      </button>
+
+      <Sheet open={sheetOpen} onOpenChange={(open) => (open ? setSheetOpen(true) : cancelEdit())}>
+        <SheetContent side="bottom" className="rounded-t-2xl pb-[calc(env(safe-area-inset-bottom)+24px)]">
+          <SheetHeader className="text-left">
+            <SheetTitle>{editingId ? "Modifier la transaction" : "Nouvelle transaction"}</SheetTitle>
+          </SheetHeader>
+          <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+            <TransactionFormFields {...formFieldsProps} layout="sheet" />
+          </form>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

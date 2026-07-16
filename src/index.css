@@ -106,4 +106,28 @@
   input[type=number] {
     -moz-appearance: textfield;
   }
+
+  /* Empêche le zoom automatique d'iOS Safari quand on tape dans un champ :
+     Safari zoome si le champ a une taille de police < 16px au moment du focus. */
+  @media (max-width: 767px) {
+    input,
+    select,
+    textarea {
+      font-size: 16px;
+    }
+  }
+
+  /* Zone tactile confortable (recommandation ~44px) pour les boutons icône
+     (modifier/supprimer, etc.) sans changer leur taille visuelle. */
+  .touch-target {
+    position: relative;
+  }
+  .touch-target::after {
+    content: "";
+    position: absolute;
+    inset: 50% auto auto 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    transform: translate(-50%, -50%);
+  }
 }

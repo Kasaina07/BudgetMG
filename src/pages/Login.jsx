@@ -89,7 +89,7 @@ export default function Login() {
                 required
                 value={form.email}
                 onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                placeholder="ex:Rakoto@gmail.com"
+                placeholder="vous@exemple.com"
               />
             </div>
             <div className="space-y-1.5">
@@ -104,7 +104,7 @@ export default function Login() {
                 minLength={6}
                 value={form.password}
                 onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-                placeholder="Mot de passe"
+                placeholder="••••••••"
               />
             </div>
             <Button type="submit" className="w-full" disabled={submitting}>

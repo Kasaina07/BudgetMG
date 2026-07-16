@@ -1,26 +1,12 @@
 import { useState } from "react";
 import { Outlet, NavLink } from "react-router-dom";
-import {
-  LayoutDashboard,
-  ArrowRightLeft,
-  CalendarRange,
-  Target,
-  Wallet,
-  Menu,
-  X,
-  LogOut,
-} from "lucide-react";
+import { Wallet, Menu, X, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { navItems } from "@/lib/navigation";
 import SyncStatus from "@/components/SyncStatus";
 import ThemeToggle from "@/components/ThemeToggle";
-
-const navItems = [
-  { to: "/", label: "Tableau de bord", icon: LayoutDashboard, end: true },
-  { to: "/transactions", label: "Transactions", icon: ArrowRightLeft },
-  { to: "/budget", label: "Budget annuel", icon: CalendarRange },
-  { to: "/objectifs", label: "Objectifs", icon: Target },
-];
+import BottomNav from "@/components/BottomNav";
 
 export default function Layout() {
   const [open, setOpen] = useState(false);
@@ -112,9 +98,11 @@ export default function Layout() {
         />
       )}
 
-      <main className="md:pl-64">
+      <main className="md:pl-64 pb-20 md:pb-0">
         <Outlet />
       </main>
+
+      <BottomNav />
     </div>
   );
 }
