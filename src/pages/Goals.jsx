@@ -1,13 +1,16 @@
 import { useState } from "react";
 import { useSavingsGoals } from "@/hooks/useSavingsGoals";
-import { Plus, Trash2, Target, PiggyBank } from "lucide-react";
+import { useFinancialStats } from "@/hooks/useFinancialStats";
+import { Plus, Trash2, Target, PiggyBank, CalendarClock } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import EmptyState from "@/components/EmptyState";
 import { CardSkeleton } from "@/components/Skeletons";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { formatMGA } from "@/lib/budgetCategories";
+import { formatMonthYear, projectGoalDate } from "@/lib/projections";
+import WhatIfSimulator from "@/components/goals/WhatIfSimulator";
 
-const emptyForm = { name: "", target_amount: "", current_amount: "" };
+const emptyForm = { name: "", target_amount: "", current_amount: "", monthly_contribution: "" };
 
 /** Champs du formulaire, partagés entre la carte desktop et la feuille modale mobile. */
 function GoalFormFields({ form, setForm, saving, stacked }) {
@@ -48,6 +51,20 @@ function GoalFormFields({ form, setForm, saving, stacked }) {
             className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-right tabular-nums focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
+      </div>
+      <div>
+        <label className="text-xs font-medium text-muted-foreground">Contribution mensuelle prévue (MGA, optionnel)</label>
+        <input
+          type="number"
+          inputMode="decimal"
+          value={form.monthly_contribution}
+          onChange={(e) => setForm((f) => ({ ...f, monthly_contribution: e.target.value }))}
+          placeholder="Ex : 50000"
+          className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-right tabular-nums focus:outline-none focus:ring-2 focus:ring-ring"
+        />
+        <p className="mt-1 text-[11px] text-muted-foreground">Sert à estimer une date d'atteinte de l'objectif.</p>
+      </div>
+      <div className={stacked ? "" : "sm:col-span-3"}>
         <button
           type="submit"
           disabled={saving}
@@ -67,6 +84,7 @@ function GoalFormFields({ form, setForm, saving, stacked }) {
 
 export default function Goals() {
   const { goals, loading, addGoal, removeGoal, addFunds } = useSavingsGoals();
+  const { kpis, depensesParCategorie, loading: loadingStats } = useFinancialStats();
   const { toast } = useToast();
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
@@ -82,6 +100,7 @@ export default function Goals() {
         name: form.name,
         target_amount: Number(form.target_amount),
         current_amount: Number(form.current_amount) || 0,
+        monthly_contribution: Number(form.monthly_contribution) || 0,
       });
       toast({ title: "Objectif créé", description: form.name });
       setForm(emptyForm);
@@ -118,10 +137,14 @@ export default function Goals() {
 
       <form
         onSubmit={handleSubmit}
-        className="hidden md:grid bg-card rounded-2xl border border-border p-5 shadow-sm grid-cols-1 sm:grid-cols-3 gap-3 items-end"
+        className="hidden md:grid bg-card rounded-2xl border border-border p-5 shadow-sm grid-cols-1 sm:grid-cols-3 gap-3 items-start"
       >
         <GoalFormFields form={form} setForm={setForm} saving={saving} stacked={false} />
       </form>
+
+      {!loadingStats && (
+        <WhatIfSimulator depensesParCategorie={depensesParCategorie} kpis={kpis} goals={goals} />
+      )}
 
       {loading ? (
         <CardSkeleton count={3} />
@@ -136,6 +159,7 @@ export default function Goals() {
           {goals.map((g) => {
             const pct = g.target_amount ? Math.min(100, Math.round((g.current_amount / g.target_amount) * 100)) : 0;
             const reached = g.current_amount >= g.target_amount;
+            const projection = projectGoalDate(g.current_amount || 0, g.target_amount || 0, g.monthly_contribution || 0);
             return (
               <div key={g.id} className="bg-card rounded-2xl border border-border p-5 shadow-sm space-y-3">
                 <div className="flex items-start justify-between gap-2">
@@ -168,6 +192,20 @@ export default function Goals() {
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">{pct}% atteint{reached ? " 🎉" : ""}</p>
                 </div>
+
+                {!reached && (
+                  <div className="flex items-start gap-1.5 text-xs text-muted-foreground bg-muted/60 rounded-lg px-2.5 py-2">
+                    <CalendarClock className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                    {projection ? (
+                      <span>
+                        Atteint vers <span className="font-medium text-foreground">{formatMonthYear(projection.date)}</span> (~{projection.months} mois)
+                        {g.monthly_contribution ? ` à ${formatMGA(g.monthly_contribution)}/mois` : ""}
+                      </span>
+                    ) : (
+                      <span>Ajoutez une contribution mensuelle prévue pour estimer une date.</span>
+                    )}
+                  </div>
+                )}
 
                 <div className="flex gap-2">
                   <input

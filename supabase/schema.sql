@@ -116,10 +116,15 @@ create table if not exists public.savings_goals (
   name            text not null,
   target_amount   numeric(14, 2) not null check (target_amount >= 0),
   current_amount  numeric(14, 2) not null default 0,
+  monthly_contribution numeric(14, 2) not null default 0,
   created_at      timestamptz not null default now(),
   updated_at      timestamptz not null default now(),
   deleted_at      timestamptz
 );
+
+-- Si la table existait déjà avant cette évolution (simulateur what-if / projections),
+-- ajouter la colonne manuellement :
+-- alter table public.savings_goals add column if not exists monthly_contribution numeric(14, 2) not null default 0;
 
 create index if not exists savings_goals_user_id_idx on public.savings_goals (user_id);
 

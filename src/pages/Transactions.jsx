@@ -1,12 +1,37 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Plus, Trash2, Pencil, X, Check, Receipt, Search, FileDown, FileSpreadsheet } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Pencil,
+  X,
+  Check,
+  Receipt,
+  Search,
+  FileDown,
+  FileSpreadsheet,
+  FileUp,
+  AlertTriangle,
+  ShieldAlert,
+  ShieldCheck,
+} from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import EmptyState from "@/components/EmptyState";
 import { TableSkeleton } from "@/components/Skeletons";
 import { exportTransactionsToPDF, exportTransactionsToExcel } from "@/lib/export";
+import { parseTransactionsFile, buildDraftRow, rowHasErrors, markDuplicates, isDuplicate } from "@/lib/importExcel";
 import {
   ALL_CATEGORIES,
   MONTHS,
@@ -103,16 +128,21 @@ export default function Transactions() {
   const [search, setSearch] = useState("");
   const {
     transactions,
+    allTransactions,
     loading,
     addTransaction,
     updateTransaction,
     removeTransaction,
+    importTransactions,
   } = useTransactions({ month: monthFilter === "all" ? undefined : Number(monthFilter) });
   const { toast } = useToast();
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const fileInputRef = useRef(null);
+  const [importPreview, setImportPreview] = useState(null); // { rows: DraftRow[] } — chaque ligne porte _excluded, _isDuplicate, fieldErrors
+  const [importing, setImporting] = useState(false);
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -198,6 +228,104 @@ export default function Transactions() {
     toast({ title: "Export Excel généré", description: `${filtered.length} transaction(s)` });
   }
 
+  function handleImportClick() {
+    fileInputRef.current?.click();
+  }
+
+  async function handleFileSelected(e) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // permet de re-sélectionner le même fichier plus tard
+    if (!file) return;
+
+    try {
+      const { rows } = await parseTransactionsFile(file);
+      const withDuplicateFlag = markDuplicates(rows, allTransactions);
+      // Exclue par défaut : lignes en erreur (impossible à importer telles quelles) et doublons probables.
+      const withDefaults = withDuplicateFlag.map((r) => ({
+        ...r,
+        _excluded: rowHasErrors(r) || r._isDuplicate,
+      }));
+      setImportPreview({ rows: withDefaults });
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "Impossible de lire ce fichier",
+        description: err.message || "Vérifiez qu'il s'agit bien d'un fichier Excel (.xlsx) ou CSV.",
+      });
+    }
+  }
+
+  /** Recalcule une ligne après une correction manuelle dans l'aperçu (champ édité par l'utilisateur). */
+  function editImportRow(sourceRow, patch) {
+    setImportPreview((prev) => {
+      if (!prev) return prev;
+      const rows = prev.rows.map((r) => {
+        if (r._sourceRow !== sourceRow) return r;
+        const hadErrors = rowHasErrors(r);
+        const rebuilt = buildDraftRow({ ...r.raw, ...patch }, sourceRow);
+        rebuilt._isDuplicate = isDuplicate(rebuilt, allTransactions);
+        // Ligne toujours invalide -> reste exclue. Ligne qui vient d'être corrigée -> on l'inclut
+        // automatiquement sauf si elle s'avère être un doublon. Ligne déjà valide avant -> on garde
+        // le choix (case à cocher / décision doublon) déjà fait par l'utilisateur.
+        rebuilt._excluded = rowHasErrors(rebuilt)
+          ? true
+          : hadErrors
+          ? rebuilt._isDuplicate
+          : r._excluded;
+        return rebuilt;
+      });
+      return { ...prev, rows };
+    });
+  }
+
+  function toggleRowExcluded(sourceRow) {
+    setImportPreview((prev) => {
+      if (!prev) return prev;
+      const rows = prev.rows.map((r) =>
+        r._sourceRow === sourceRow && !rowHasErrors(r) ? { ...r, _excluded: !r._excluded } : r
+      );
+      return { ...prev, rows };
+    });
+  }
+
+  /** Décision explicite pour une ligne en doublon probable : true = "c'est un doublon, ignorer", false = "ce n'est pas un doublon, importer". */
+  function setDuplicateDecision(sourceRow, isRealDuplicate) {
+    setImportPreview((prev) => {
+      if (!prev) return prev;
+      const rows = prev.rows.map((r) =>
+        r._sourceRow === sourceRow ? { ...r, _excluded: isRealDuplicate } : r
+      );
+      return { ...prev, rows };
+    });
+  }
+
+  function closeImportPreview() {
+    setImportPreview(null);
+  }
+
+  async function confirmImport() {
+    if (!importPreview) return;
+    const rowsToImport = importPreview.rows
+      .filter((r) => !r._excluded && !rowHasErrors(r))
+      .map(({ _sourceRow, raw, categoryWasFallback, originalCategoryRaw, fieldErrors, _isDuplicate, _excluded, ...payload }) => payload);
+
+    if (rowsToImport.length === 0) {
+      toast({ variant: "destructive", title: "Aucune ligne à importer", description: "Toutes les lignes sont exclues ou encore invalides." });
+      return;
+    }
+
+    setImporting(true);
+    try {
+      importTransactions(rowsToImport);
+      toast({ title: "Import terminé", description: `${rowsToImport.length} transaction(s) ajoutée(s)` });
+      closeImportPreview();
+    } catch (err) {
+      toast({ variant: "destructive", title: "Échec de l'import", description: err.message });
+    } finally {
+      setImporting(false);
+    }
+  }
+
   const formFieldsProps = { form, setForm, handleCategoryChange, editingId, cancelEdit, saving };
 
   return (
@@ -247,6 +375,22 @@ export default function Transactions() {
           ))}
         </select>
         <div className="flex gap-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".xlsx,.xls,.csv"
+            onChange={handleFileSelected}
+            className="hidden"
+          />
+          <button
+            type="button"
+            onClick={handleImportClick}
+            title="Importer depuis Excel/CSV"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-2.5 text-sm font-medium hover:bg-muted"
+          >
+            <FileUp className="h-4 w-4" />
+            Importer
+          </button>
           <button
             type="button"
             onClick={handleExportPDF}
@@ -377,6 +521,245 @@ export default function Transactions() {
           </form>
         </SheetContent>
       </Sheet>
+
+      <Dialog open={!!importPreview} onOpenChange={(open) => !open && closeImportPreview()}>
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Aperçu de l'import</DialogTitle>
+            <DialogDescription>
+              Corrigez directement les lignes en rouge (elles ne sont pas importables telles quelles),
+              et confirmez ou infirmez chaque doublon probable avant de valider.
+            </DialogDescription>
+          </DialogHeader>
+
+          {importPreview && (() => {
+            const errorCount = importPreview.rows.filter(rowHasErrors).length;
+            const duplicateCount = importPreview.rows.filter((r) => r._isDuplicate).length;
+            const readyCount = importPreview.rows.filter((r) => !r._excluded && !rowHasErrors(r)).length;
+            return (
+              <div className="flex-1 overflow-y-auto space-y-4">
+                <div className="flex flex-wrap gap-2 text-sm">
+                  <Badge variant="secondary">{readyCount} prête(s) à importer</Badge>
+                  {errorCount > 0 && (
+                    <Badge variant="destructive">{errorCount} à corriger</Badge>
+                  )}
+                  {duplicateCount > 0 && (
+                    <Badge variant="outline">{duplicateCount} doublon(s) probable(s)</Badge>
+                  )}
+                </div>
+
+                <div className="rounded-xl border border-border overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead className="bg-muted/50 text-muted-foreground">
+                      <tr>
+                        <th className="w-10 px-3 py-2"></th>
+                        <th className="text-left font-medium px-3 py-2">Date</th>
+                        <th className="text-left font-medium px-3 py-2">Description</th>
+                        <th className="text-left font-medium px-3 py-2">Catégorie</th>
+                        <th className="text-left font-medium px-3 py-2">Type</th>
+                        <th className="text-right font-medium px-3 py-2">Montant</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {importPreview.rows.map((r) => {
+                        const hasErrors = rowHasErrors(r);
+
+                        // ---- Ligne invalide : champs éditables + messages d'erreur ----
+                        if (hasErrors) {
+                          return (
+                            <tr key={r._sourceRow} className="border-t border-border bg-destructive/5 align-top">
+                              <td className="px-3 py-2 pt-3">
+                                <AlertTriangle className="h-4 w-4 text-destructive" />
+                              </td>
+                              <td className="px-3 py-2">
+                                <input
+                                  type="date"
+                                  value={r.date || ""}
+                                  onChange={(ev) => editImportRow(r._sourceRow, { date: ev.target.value })}
+                                  className={`w-full rounded-lg border px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring ${
+                                    r.fieldErrors.date ? "border-destructive" : "border-border"
+                                  }`}
+                                />
+                                {r.fieldErrors.date && (
+                                  <p className="mt-1 text-xs text-destructive">{r.fieldErrors.date}</p>
+                                )}
+                              </td>
+                              <td className="px-3 py-2">
+                                <input
+                                  type="text"
+                                  value={r.description}
+                                  onChange={(ev) => editImportRow(r._sourceRow, { description: ev.target.value })}
+                                  placeholder="Description"
+                                  className={`w-full rounded-lg border px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring ${
+                                    r.fieldErrors.description ? "border-destructive" : "border-border"
+                                  }`}
+                                />
+                                {r.fieldErrors.description && (
+                                  <p className="mt-1 text-xs text-destructive">{r.fieldErrors.description}</p>
+                                )}
+                              </td>
+                              <td className="px-3 py-2">
+                                <select
+                                  value={r.category}
+                                  onChange={(ev) => editImportRow(r._sourceRow, { category: ev.target.value })}
+                                  className="w-full rounded-lg border border-border px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                                >
+                                  {ALL_CATEGORIES.map((c) => (
+                                    <option key={c.name} value={c.name}>
+                                      {c.name}
+                                    </option>
+                                  ))}
+                                </select>
+                                {r.categoryWasFallback && r.originalCategoryRaw && (
+                                  <p className="mt-1 text-xs text-amber-600">
+                                    non reconnue : « {r.originalCategoryRaw} »
+                                  </p>
+                                )}
+                              </td>
+                              <td className="px-3 py-2">
+                                <select
+                                  value={r.type}
+                                  onChange={(ev) => editImportRow(r._sourceRow, { type: ev.target.value })}
+                                  className="w-full rounded-lg border border-border px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                                >
+                                  <option value="Dépense">Dépense</option>
+                                  <option value="Revenu">Revenu</option>
+                                </select>
+                              </td>
+                              <td className="px-3 py-2">
+                                <input
+                                  type="number"
+                                  inputMode="decimal"
+                                  value={isNaN(r.amount) ? "" : r.amount}
+                                  onChange={(ev) => editImportRow(r._sourceRow, { amount: ev.target.value })}
+                                  placeholder="0"
+                                  className={`w-full rounded-lg border px-2 py-1.5 text-sm text-right tabular-nums focus:outline-none focus:ring-2 focus:ring-ring ${
+                                    r.fieldErrors.amount ? "border-destructive" : "border-border"
+                                  }`}
+                                />
+                                {r.fieldErrors.amount && (
+                                  <p className="mt-1 text-xs text-destructive">{r.fieldErrors.amount}</p>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        }
+
+                        // ---- Ligne valide, mais doublon probable : décision explicite ----
+                        if (r._isDuplicate) {
+                          return (
+                            <tr key={r._sourceRow} className="border-t border-border bg-amber-50/60">
+                              <td className="px-3 py-2"></td>
+                              <td className="px-3 py-2 whitespace-nowrap text-muted-foreground">
+                                {new Date(r.date).toLocaleDateString("fr-FR")}
+                              </td>
+                              <td className="px-3 py-2 font-medium">{r.description}</td>
+                              <td className="px-3 py-2 text-muted-foreground">{r.category}</td>
+                              <td className="px-3 py-2 text-muted-foreground">{r.type}</td>
+                              <td className="px-3 py-2">
+                                <div
+                                  className={`text-right tabular-nums font-medium mb-1.5 ${
+                                    r.type === "Revenu" ? "text-emerald-600" : "text-red-600"
+                                  }`}
+                                >
+                                  {r.type === "Revenu" ? "+" : "-"}
+                                  {formatMGA(r.amount)}
+                                </div>
+                                <div className="flex justify-end gap-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => setDuplicateDecision(r._sourceRow, true)}
+                                    title="C'est bien un doublon : ne pas importer cette ligne"
+                                    className={`inline-flex items-center gap-1 rounded-lg border px-2 py-1 text-xs font-medium ${
+                                      r._excluded
+                                        ? "border-amber-400 bg-amber-100 text-amber-800"
+                                        : "border-border text-muted-foreground hover:bg-muted"
+                                    }`}
+                                  >
+                                    <ShieldAlert className="h-3 w-3" />
+                                    Doublon
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setDuplicateDecision(r._sourceRow, false)}
+                                    title="Ce n'est pas un doublon : importer cette ligne quand même"
+                                    className={`inline-flex items-center gap-1 rounded-lg border px-2 py-1 text-xs font-medium ${
+                                      !r._excluded
+                                        ? "border-emerald-400 bg-emerald-100 text-emerald-800"
+                                        : "border-border text-muted-foreground hover:bg-muted"
+                                    }`}
+                                  >
+                                    <ShieldCheck className="h-3 w-3" />
+                                    Pas un doublon
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        }
+
+                        // ---- Ligne valide, standard : simple case à cocher ----
+                        return (
+                          <tr
+                            key={r._sourceRow}
+                            className={`border-t border-border ${r._excluded ? "opacity-40" : ""}`}
+                          >
+                            <td className="px-3 py-2">
+                              <Checkbox
+                                checked={!r._excluded}
+                                onCheckedChange={() => toggleRowExcluded(r._sourceRow)}
+                              />
+                            </td>
+                            <td className="px-3 py-2 whitespace-nowrap text-muted-foreground">
+                              {new Date(r.date).toLocaleDateString("fr-FR")}
+                            </td>
+                            <td className="px-3 py-2 font-medium">{r.description}</td>
+                            <td className="px-3 py-2 text-muted-foreground">
+                              {r.category}
+                              {r.categoryWasFallback && r.originalCategoryRaw && (
+                                <span className="ml-1.5 text-xs text-amber-600">
+                                  (non reconnue : « {r.originalCategoryRaw} »)
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-3 py-2 text-muted-foreground">{r.type}</td>
+                            <td
+                              className={`px-3 py-2 text-right tabular-nums font-medium ${
+                                r.type === "Revenu" ? "text-emerald-600" : "text-red-600"
+                              }`}
+                            >
+                              {r.type === "Revenu" ? "+" : "-"}
+                              {formatMGA(r.amount)}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            );
+          })()}
+
+          <DialogFooter>
+            <button
+              type="button"
+              onClick={closeImportPreview}
+              className="rounded-xl border border-border px-4 py-2.5 text-sm font-medium hover:bg-muted"
+            >
+              Annuler
+            </button>
+            <button
+              type="button"
+              onClick={confirmImport}
+              disabled={importing || !importPreview?.rows.length}
+              className="rounded-xl bg-primary text-primary-foreground px-4 py-2.5 text-sm font-medium hover:bg-primary/90 disabled:opacity-50"
+            >
+              {importing ? "Import en cours…" : "Confirmer l'import"}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

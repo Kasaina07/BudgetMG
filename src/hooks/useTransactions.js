@@ -10,7 +10,7 @@
 // ============================================================================
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { list, create, update, remove, TABLES } from "@/services/storage";
+import { list, create, update, remove, bulkCreate, TABLES } from "@/services/storage";
 
 function inPeriod(dateStr, month, year) {
   const d = new Date(dateStr);
@@ -82,6 +82,16 @@ export function useTransactions({ month, year } = {}) {
     [refresh]
   );
 
+  /** Insère plusieurs transactions d'un coup (ex. import Excel/CSV), une seule écriture + un seul refresh. */
+  const importTransactions = useCallback(
+    (rows) => {
+      const records = bulkCreate(TABLES.TRANSACTIONS, rows);
+      refresh();
+      return records;
+    },
+    [refresh]
+  );
+
   return {
     transactions: filtered,
     allTransactions: transactions,
@@ -89,6 +99,7 @@ export function useTransactions({ month, year } = {}) {
     addTransaction,
     updateTransaction,
     removeTransaction,
+    importTransactions,
     refresh,
   };
 }

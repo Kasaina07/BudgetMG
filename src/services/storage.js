@@ -212,6 +212,29 @@ export function create(table, data) {
   return record;
 }
 
+/**
+ * Crée plusieurs enregistrements en une seule écriture localStorage (plus
+ * efficace qu'un create() par ligne pour un import en masse). Chaque ligne
+ * suit la même forme "sync-ready" que create().
+ */
+export function bulkCreate(table, dataList) {
+  const db = getDB();
+  const now = nowISO();
+  const records = dataList.map((data) => ({
+    id: generateId(),
+    ...data,
+    created_at: now,
+    updated_at: now,
+    deleted_at: null,
+    dirty: true,
+    synced_at: null,
+  }));
+  const next = { ...db, [table]: [...(db[table] || []), ...records] };
+  setDB(next);
+  emit("storage:changed", table);
+  return records;
+}
+
 export function update(table, id, patch) {
   const db = getDB();
   const records = db[table] || [];

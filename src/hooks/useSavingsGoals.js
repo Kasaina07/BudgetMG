@@ -50,6 +50,16 @@ export function useSavingsGoals() {
     [refresh]
   );
 
+  /** Met à jour des champs libres d'un objectif (ex : contribution mensuelle prévue). */
+  const updateGoal = useCallback(
+    (id, patch) => {
+      const record = update(TABLES.SAVINGS_GOALS, id, patch);
+      refresh();
+      return record;
+    },
+    [refresh]
+  );
+
   /** Ajoute un montant au solde déjà épargné d'un objectif. */
   const addFunds = useCallback(
     (goal, amount) => {
@@ -62,5 +72,5 @@ export function useSavingsGoals() {
     [refresh]
   );
 
-  return { goals, loading, addGoal, removeGoal, addFunds, refresh };
+  return { goals, loading, addGoal, removeGoal, addFunds, updateGoal, refresh };
 }
