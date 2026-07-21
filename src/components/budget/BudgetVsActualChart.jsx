@@ -35,7 +35,7 @@ export default function BudgetVsActualChart({ data }) {
         />
         <Legend wrapperStyle={{ fontSize: 12, fontFamily: "var(--font-body)" }} />
         <Bar dataKey="Prévu" fill="#C9BFA8" radius={[5, 5, 0, 0]} />
-        <Bar dataKey="Réel" fill="#1B5E4F" radius={[5, 5, 0, 0]} />
+        <Bar dataKey="Réel" fill="#2F82B8" radius={[5, 5, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

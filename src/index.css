@@ -14,9 +14,9 @@
     --popover: 0 0% 100%;
     --popover-foreground: 156 16% 12%;
 
-    /* Émeraude profond — couleur "vola" : croissance, épargne, confiance. */
-    --primary: 167 55% 24%;
-    --primary-foreground: 144 38% 97%;
+    /* Bleu clair — couleur de marque : confiance, clarté. */
+    --primary: 204 59% 45%;
+    --primary-foreground: 203 67% 98%;
 
     --secondary: 40 35% 92%;
     --secondary-foreground: 156 16% 12%;
@@ -36,9 +36,9 @@
 
     --border: 39 26% 87%;
     --input: 39 26% 87%;
-    --ring: 167 55% 24%;
+    --ring: 204 59% 45%;
 
-    --chart-1: 167 55% 24%;
+    --chart-1: 204 59% 45%;
     --chart-2: 36 64% 48%;
     --chart-3: 154 40% 55%;
     --chart-4: 10 55% 55%;
@@ -54,31 +54,31 @@
     /* Ombre douce et chaude plutôt qu'un gris neutre générique. */
     --shadow-color: 35 30% 25%;
 
-    --sidebar-background: 150 28% 10%;
-    --sidebar-foreground: 144 25% 92%;
+    --sidebar-background: 204 63% 15%;
+    --sidebar-foreground: 203 30% 92%;
     --sidebar-primary: 36 64% 48%;
     --sidebar-primary-foreground: 35 84% 12%;
-    --sidebar-accent: 148 33% 16%;
-    --sidebar-accent-foreground: 144 25% 92%;
-    --sidebar-border: 150 25% 18%;
+    --sidebar-accent: 203 57% 22%;
+    --sidebar-accent-foreground: 203 30% 92%;
+    --sidebar-border: 203 50% 21%;
     --sidebar-ring: 36 64% 48%;
   }
 
   .dark {
-    --background: 158 33% 9%;
-    --foreground: 44 23% 91%;
-    --card: 150 29% 12%;
-    --card-foreground: 44 23% 91%;
-    --popover: 150 29% 12%;
-    --popover-foreground: 44 23% 91%;
+    --background: 204 35% 8%;
+    --foreground: 44 15% 91%;
+    --card: 204 30% 11%;
+    --card-foreground: 44 15% 91%;
+    --popover: 204 30% 11%;
+    --popover-foreground: 44 15% 91%;
 
-    --primary: 158 44% 47%;
-    --primary-foreground: 153 48% 8%;
+    --primary: 201 68% 62%;
+    --primary-foreground: 201 71% 11%;
 
-    --secondary: 152 25% 15%;
-    --secondary-foreground: 44 23% 91%;
-    --muted: 152 25% 15%;
-    --muted-foreground: 147 11% 65%;
+    --secondary: 204 22% 16%;
+    --secondary-foreground: 44 15% 91%;
+    --muted: 204 22% 16%;
+    --muted-foreground: 203 12% 66%;
 
     --accent: 38 72% 57%;
     --accent-foreground: 35 84% 10%;
@@ -90,25 +90,25 @@
     --warning: 38 72% 57%;
     --warning-foreground: 35 84% 10%;
 
-    --border: 153 22% 18%;
-    --input: 153 22% 18%;
-    --ring: 158 44% 47%;
+    --border: 204 22% 19%;
+    --input: 204 22% 19%;
+    --ring: 201 68% 62%;
 
-    --chart-1: 158 44% 55%;
+    --chart-1: 201 68% 62%;
     --chart-2: 38 72% 57%;
     --chart-3: 154 30% 60%;
     --chart-4: 9 60% 62%;
     --chart-5: 200 40% 60%;
 
-    --shadow-color: 158 40% 3%;
+    --shadow-color: 204 45% 3%;
 
-    --sidebar-background: 150 32% 7%;
-    --sidebar-foreground: 144 25% 92%;
+    --sidebar-background: 204 45% 6%;
+    --sidebar-foreground: 203 30% 92%;
     --sidebar-primary: 38 72% 57%;
     --sidebar-primary-foreground: 35 84% 10%;
-    --sidebar-accent: 152 25% 15%;
-    --sidebar-accent-foreground: 144 25% 92%;
-    --sidebar-border: 150 22% 16%;
+    --sidebar-accent: 204 22% 16%;
+    --sidebar-accent-foreground: 203 30% 92%;
+    --sidebar-border: 204 22% 14%;
     --sidebar-ring: 38 72% 57%;
   }
 }
