@@ -128,7 +128,16 @@ export async function remoteListSince(table, isoDate) {
 export function subscribeToRemoteChanges(userId, onChange) {
   if (!userId) return () => {};
 
-  const channel = supabase.channel(`sync-${userId}`);
+  const topic = `sync-${userId}`;
+
+  // Si un canal du même nom existe déjà (ex. double montage en React StrictMode,
+  // ou changement rapide d'utilisateur avant la fin du désabonnement précédent),
+  // on le retire d'abord : sinon supabase.channel() peut renvoyer un canal déjà
+  // "subscribed", et .on() lève "cannot add callbacks after subscribe()".
+  const existing = supabase.getChannels().find((c) => c.topic === `realtime:${topic}`);
+  if (existing) supabase.removeChannel(existing);
+
+  const channel = supabase.channel(topic);
 
   for (const [appTable, remoteTable] of Object.entries(REMOTE_TABLES)) {
     channel.on(
@@ -142,7 +151,10 @@ export function subscribeToRemoteChanges(userId, onChange) {
 
   channel.subscribe();
 
+  let unsubscribed = false;
   return () => {
+    if (unsubscribed) return;
+    unsubscribed = true;
     supabase.removeChannel(channel);
   };
 }
