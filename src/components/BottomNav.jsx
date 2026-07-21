@@ -13,7 +13,7 @@ import { navItems } from "@/lib/navigation";
 export default function BottomNav() {
   return (
     <nav
-      className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-card border-t border-border pb-[env(safe-area-inset-bottom)]"
+      className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-card/95 backdrop-blur border-t border-border pb-[env(safe-area-inset-bottom)]"
       role="navigation"
       aria-label="Navigation principale"
     >
@@ -23,17 +23,26 @@ export default function BottomNav() {
             key={item.to}
             to={item.to}
             end={item.end}
-            className={({ isActive }) =>
-              cn(
-                "flex flex-col items-center justify-center gap-1 py-2.5 min-h-[52px] text-[11px] font-medium transition-colors",
-                isActive ? "text-primary" : "text-muted-foreground"
-              )
-            }
+            className={cn(
+              "flex flex-col items-center justify-center gap-1 py-2.5 min-h-[56px] text-[11px] font-medium transition-colors"
+            )}
           >
             {({ isActive }) => (
               <>
-                <item.icon className={cn("h-5 w-5", isActive && "fill-primary/10")} strokeWidth={isActive ? 2.4 : 2} />
-                {item.shortLabel}
+                <span
+                  className={cn(
+                    "flex items-center justify-center h-7 w-9 rounded-full transition-colors",
+                    isActive ? "bg-accent/15" : ""
+                  )}
+                >
+                  <item.icon
+                    className={cn("h-5 w-5", isActive ? "text-accent" : "text-muted-foreground")}
+                    strokeWidth={isActive ? 2.4 : 2}
+                  />
+                </span>
+                <span className={isActive ? "text-foreground" : "text-muted-foreground"}>
+                  {item.shortLabel}
+                </span>
               </>
             )}
           </NavLink>

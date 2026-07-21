@@ -23,10 +23,19 @@ export default function BudgetVsActualChart({ data }) {
           height={50}
         />
         <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${Math.round(v / 1000)}k`} />
-        <Tooltip formatter={(value) => formatMGA(value)} />
-        <Legend wrapperStyle={{ fontSize: 12 }} />
-        <Bar dataKey="Prévu" fill="#94a3b8" radius={[4, 4, 0, 0]} />
-        <Bar dataKey="Réel" fill="#0f766e" radius={[4, 4, 0, 0]} />
+        <Tooltip
+          formatter={(value) => formatMGA(value)}
+          contentStyle={{
+            fontFamily: "var(--font-body)",
+            borderRadius: 12,
+            border: "1px solid hsl(var(--border))",
+            background: "hsl(var(--popover))",
+            color: "hsl(var(--popover-foreground))",
+          }}
+        />
+        <Legend wrapperStyle={{ fontSize: 12, fontFamily: "var(--font-body)" }} />
+        <Bar dataKey="Prévu" fill="#C9BFA8" radius={[5, 5, 0, 0]} />
+        <Bar dataKey="Réel" fill="#1B5E4F" radius={[5, 5, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

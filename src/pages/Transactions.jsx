@@ -332,9 +332,11 @@ export default function Transactions() {
     <div className="p-6 md:p-8 space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
+          <p className="text-xs font-medium text-accent uppercase tracking-wide mb-1">Mouvements</p>
           <h1 className="text-2xl font-heading font-semibold tracking-tight">Transactions</h1>
-          <p className="text-sm text-muted-foreground">
-            {filtered.length} transaction{filtered.length > 1 ? "s" : ""} · Solde : {formatMGA(total)}
+          <p className="font-figure text-sm text-muted-foreground mt-0.5">
+            {filtered.length} transaction{filtered.length > 1 ? "s" : ""} · Solde{" "}
+            <span className="text-foreground font-semibold">{formatMGA(total)}</span>
           </p>
         </div>
         <select
@@ -386,30 +388,30 @@ export default function Transactions() {
             type="button"
             onClick={handleImportClick}
             title="Importer depuis Excel/CSV"
-            className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-2.5 text-sm font-medium hover:bg-muted"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-2.5 sm:px-3 py-2.5 text-sm font-medium hover:bg-muted touch-target"
           >
             <FileUp className="h-4 w-4" />
-            Importer
+            <span className="hidden sm:inline">Importer</span>
           </button>
           <button
             type="button"
             onClick={handleExportPDF}
             disabled={filtered.length === 0}
             title="Exporter en PDF"
-            className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-2.5 text-sm font-medium hover:bg-muted disabled:opacity-40 disabled:pointer-events-none"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-2.5 sm:px-3 py-2.5 text-sm font-medium hover:bg-muted disabled:opacity-40 disabled:pointer-events-none touch-target"
           >
             <FileDown className="h-4 w-4" />
-            PDF
+            <span className="hidden sm:inline">PDF</span>
           </button>
           <button
             type="button"
             onClick={handleExportExcel}
             disabled={filtered.length === 0}
             title="Exporter en Excel"
-            className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-2.5 text-sm font-medium hover:bg-muted disabled:opacity-40 disabled:pointer-events-none"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-2.5 sm:px-3 py-2.5 text-sm font-medium hover:bg-muted disabled:opacity-40 disabled:pointer-events-none touch-target"
           >
             <FileSpreadsheet className="h-4 w-4" />
-            Excel
+            <span className="hidden sm:inline">Excel</span>
           </button>
         </div>
       </div>
@@ -417,86 +419,138 @@ export default function Transactions() {
       {/* Formulaire inline — desktop uniquement. Sur mobile, place au FAB + feuille modale ci-dessous. */}
       <form
         onSubmit={handleSubmit}
-        className="hidden md:grid bg-card rounded-2xl border border-border p-5 shadow-sm grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 items-end"
+        className="hidden md:grid bg-card rounded-2xl border border-border p-5 shadow-warm-sm grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 items-end"
       >
         <TransactionFormFields {...formFieldsProps} layout="inline" />
       </form>
 
-      <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50 text-muted-foreground">
-              <tr>
-                <th className="text-left font-medium px-4 py-3">Date</th>
-                <th className="text-left font-medium px-4 py-3">Description</th>
-                <th className="text-left font-medium px-4 py-3">Catégorie</th>
-                <th className="text-right font-medium px-4 py-3">Montant</th>
-                <th className="px-4 py-3 w-20"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
+      {loading ? (
+        <>
+          <div className="md:hidden space-y-2">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="bg-card rounded-2xl border border-border shadow-warm-sm p-4 h-[68px] animate-pulse" />
+            ))}
+          </div>
+          <div className="hidden md:block bg-card rounded-2xl border border-border shadow-warm-sm overflow-hidden">
+            <table className="w-full text-sm">
+              <tbody>
                 <TableSkeleton rows={6} columns={5} />
-              ) : filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="p-0">
-                    <EmptyState
-                      icon={Receipt}
-                      title={
-                        transactions.length === 0
-                          ? "Aucune transaction pour le moment"
-                          : "Aucun résultat pour ces filtres"
-                      }
-                      description={
-                        transactions.length === 0
-                          ? "Ajoutez votre première transaction avec le bouton + ci-dessous."
-                          : "Essayez une autre recherche ou réinitialisez les filtres."
-                      }
-                      className="border-0 rounded-none"
-                    />
-                  </td>
-                </tr>
-              ) : (
-                filtered.map((t) => (
-                  <tr key={t.id} className="border-t border-border hover:bg-muted/20">
-                    <td className="px-4 py-2.5 whitespace-nowrap text-muted-foreground">
-                      {new Date(t.date).toLocaleDateString("fr-FR")}
-                    </td>
-                    <td className="px-4 py-2.5 font-medium">{t.description}</td>
-                    <td className="px-4 py-2.5 text-muted-foreground">{t.category}</td>
-                    <td
-                      className={`px-4 py-2.5 text-right tabular-nums font-medium ${
-                        t.type === "Revenu" ? "text-emerald-600" : "text-red-600"
-                      }`}
-                    >
-                      {t.type === "Revenu" ? "+" : "-"}
-                      {formatMGA(t.amount)}
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          onClick={() => startEdit(t)}
-                          className="p-2 rounded-lg hover:bg-muted text-muted-foreground touch-target"
-                          title="Modifier"
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(t)}
-                          className="p-2 rounded-lg hover:bg-red-50 text-red-500 touch-target"
-                          title="Supprimer"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    </td>
+              </tbody>
+            </table>
+          </div>
+        </>
+      ) : filtered.length === 0 ? (
+        <EmptyState
+          icon={Receipt}
+          title={
+            transactions.length === 0
+              ? "Aucune transaction pour le moment"
+              : "Aucun résultat pour ces filtres"
+          }
+          description={
+            transactions.length === 0
+              ? "Ajoutez votre première transaction avec le bouton + ci-dessous."
+              : "Essayez une autre recherche ou réinitialisez les filtres."
+          }
+        />
+      ) : (
+        <>
+          {/* Liste en cartes — mobile uniquement. Une table qui défile horizontalement est
+              pénible au pouce ; ici chaque transaction tient sur une carte, actions à portée. */}
+          <ul className="md:hidden space-y-2">
+            {filtered.map((t) => (
+              <li key={t.id} className="bg-card rounded-2xl border border-border shadow-warm-sm p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-medium truncate">{t.description}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {new Date(t.date).toLocaleDateString("fr-FR")} · {t.category}
+                    </p>
+                  </div>
+                  <p
+                    className={`font-figure text-sm font-semibold whitespace-nowrap ${
+                      t.type === "Revenu" ? "text-success" : "text-destructive"
+                    }`}
+                  >
+                    {t.type === "Revenu" ? "+" : "-"}
+                    {formatMGA(t.amount)}
+                  </p>
+                </div>
+                <div className="flex items-center justify-end gap-1 mt-2 -mb-1 -mr-1.5">
+                  <button
+                    onClick={() => startEdit(t)}
+                    className="p-2 rounded-lg hover:bg-muted text-muted-foreground touch-target"
+                    title="Modifier"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(t)}
+                    className="p-2 rounded-lg hover:bg-destructive/10 text-destructive/80 hover:text-destructive touch-target"
+                    title="Supprimer"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          {/* Table — desktop uniquement. */}
+          <div className="hidden md:block bg-card rounded-2xl border border-border shadow-warm-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/50 text-muted-foreground">
+                  <tr>
+                    <th className="text-left font-medium px-4 py-3">Date</th>
+                    <th className="text-left font-medium px-4 py-3">Description</th>
+                    <th className="text-left font-medium px-4 py-3">Catégorie</th>
+                    <th className="text-right font-medium px-4 py-3">Montant</th>
+                    <th className="px-4 py-3 w-20"></th>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                </thead>
+                <tbody>
+                  {filtered.map((t) => (
+                    <tr key={t.id} className="border-t border-border hover:bg-muted/20">
+                      <td className="px-4 py-2.5 whitespace-nowrap text-muted-foreground">
+                        {new Date(t.date).toLocaleDateString("fr-FR")}
+                      </td>
+                      <td className="px-4 py-2.5 font-medium">{t.description}</td>
+                      <td className="px-4 py-2.5 text-muted-foreground">{t.category}</td>
+                      <td
+                        className={`font-figure px-4 py-2.5 text-right font-medium ${
+                          t.type === "Revenu" ? "text-success" : "text-destructive"
+                        }`}
+                      >
+                        {t.type === "Revenu" ? "+" : "-"}
+                        {formatMGA(t.amount)}
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => startEdit(t)}
+                            className="p-2 rounded-lg hover:bg-muted text-muted-foreground touch-target"
+                            title="Modifier"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(t)}
+                            className="p-2 rounded-lg hover:bg-destructive/10 text-destructive/80 hover:text-destructive touch-target"
+                            title="Supprimer"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Bouton flottant — mobile uniquement. Ouvre le formulaire en feuille modale. */}
       <button
@@ -506,7 +560,7 @@ export default function Transactions() {
           setSheetOpen(true);
         }}
         aria-label="Ajouter une transaction"
-        className="md:hidden fixed z-20 right-4 bottom-[calc(env(safe-area-inset-bottom)+72px)] h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center active:scale-95 transition-transform"
+        className="md:hidden fixed z-20 right-4 bottom-[calc(env(safe-area-inset-bottom)+72px)] h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-warm-lg flex items-center justify-center active:scale-95 transition-transform"
       >
         <Plus className="h-6 w-6" />
       </button>
@@ -611,7 +665,7 @@ export default function Transactions() {
                                   ))}
                                 </select>
                                 {r.categoryWasFallback && r.originalCategoryRaw && (
-                                  <p className="mt-1 text-xs text-amber-600">
+                                  <p className="mt-1 text-xs text-warning">
                                     non reconnue : « {r.originalCategoryRaw} »
                                   </p>
                                 )}
@@ -648,7 +702,7 @@ export default function Transactions() {
                         // ---- Ligne valide, mais doublon probable : décision explicite ----
                         if (r._isDuplicate) {
                           return (
-                            <tr key={r._sourceRow} className="border-t border-border bg-amber-50/60">
+                            <tr key={r._sourceRow} className="border-t border-border bg-warning/10">
                               <td className="px-3 py-2"></td>
                               <td className="px-3 py-2 whitespace-nowrap text-muted-foreground">
                                 {new Date(r.date).toLocaleDateString("fr-FR")}
@@ -659,7 +713,7 @@ export default function Transactions() {
                               <td className="px-3 py-2">
                                 <div
                                   className={`text-right tabular-nums font-medium mb-1.5 ${
-                                    r.type === "Revenu" ? "text-emerald-600" : "text-red-600"
+                                    r.type === "Revenu" ? "text-success" : "text-destructive"
                                   }`}
                                 >
                                   {r.type === "Revenu" ? "+" : "-"}
@@ -672,7 +726,7 @@ export default function Transactions() {
                                     title="C'est bien un doublon : ne pas importer cette ligne"
                                     className={`inline-flex items-center gap-1 rounded-lg border px-2 py-1 text-xs font-medium ${
                                       r._excluded
-                                        ? "border-amber-400 bg-amber-100 text-amber-800"
+                                        ? "border-warning/40 bg-warning/15 text-warning"
                                         : "border-border text-muted-foreground hover:bg-muted"
                                     }`}
                                   >
@@ -685,7 +739,7 @@ export default function Transactions() {
                                     title="Ce n'est pas un doublon : importer cette ligne quand même"
                                     className={`inline-flex items-center gap-1 rounded-lg border px-2 py-1 text-xs font-medium ${
                                       !r._excluded
-                                        ? "border-emerald-400 bg-emerald-100 text-emerald-800"
+                                        ? "border-success/40 bg-success/15 text-success"
                                         : "border-border text-muted-foreground hover:bg-muted"
                                     }`}
                                   >
@@ -717,7 +771,7 @@ export default function Transactions() {
                             <td className="px-3 py-2 text-muted-foreground">
                               {r.category}
                               {r.categoryWasFallback && r.originalCategoryRaw && (
-                                <span className="ml-1.5 text-xs text-amber-600">
+                                <span className="ml-1.5 text-xs text-warning">
                                   (non reconnue : « {r.originalCategoryRaw} »)
                                 </span>
                               )}
@@ -725,7 +779,7 @@ export default function Transactions() {
                             <td className="px-3 py-2 text-muted-foreground">{r.type}</td>
                             <td
                               className={`px-3 py-2 text-right tabular-nums font-medium ${
-                                r.type === "Revenu" ? "text-emerald-600" : "text-red-600"
+                                r.type === "Revenu" ? "text-success" : "text-destructive"
                               }`}
                             >
                               {r.type === "Revenu" ? "+" : "-"}

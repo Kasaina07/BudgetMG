@@ -22,7 +22,7 @@ export function CardSkeleton({ count = 3, className = "" }) {
   return (
     <div className={`grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 ${className}`}>
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="bg-card rounded-2xl border border-border p-5 shadow-sm space-y-3">
+        <div key={i} className="bg-card rounded-2xl border border-border p-5 shadow-warm-sm space-y-3">
           <div className="flex items-center gap-2">
             <Skeleton className="h-9 w-9 rounded-xl" />
             <div className="space-y-1.5 flex-1">
@@ -42,7 +42,7 @@ export function KpiSkeleton({ count = 5 }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="bg-card rounded-2xl border border-border p-4 shadow-sm space-y-2">
+        <div key={i} className="bg-card rounded-2xl border border-border p-4 shadow-warm-sm space-y-2">
           <Skeleton className="h-3 w-2/3" />
           <Skeleton className="h-5 w-1/2" />
         </div>

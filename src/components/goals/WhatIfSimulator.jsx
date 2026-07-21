@@ -47,21 +47,21 @@ function ReductionSimulator({ depensesParCategorie, currentMonthlySavings }) {
       <div>
         <div className="flex items-center justify-between mb-1">
           <label className="text-xs font-medium text-muted-foreground">Réduction simulée</label>
-          <span className="text-sm font-semibold text-primary">{pct[0]}%</span>
+          <span className="font-figure text-sm font-semibold text-primary">{pct[0]}%</span>
         </div>
         <Slider value={pct} onValueChange={setPct} min={0} max={75} step={5} />
       </div>
 
       <div className="grid grid-cols-2 gap-3 pt-1">
-        <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/30 p-3">
-          <p className="text-[11px] text-emerald-700 dark:text-emerald-400 font-medium">Économie / mois</p>
-          <p className="text-base font-heading font-semibold text-emerald-700 dark:text-emerald-400">
+        <div className="rounded-xl bg-success/10 p-3">
+          <p className="text-[11px] text-success font-medium">Économie / mois</p>
+          <p className="font-figure text-base font-semibold text-success">
             +{formatMGA(result.monthlySaved)}
           </p>
         </div>
-        <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/30 p-3">
-          <p className="text-[11px] text-emerald-700 dark:text-emerald-400 font-medium">Économie / an</p>
-          <p className="text-base font-heading font-semibold text-emerald-700 dark:text-emerald-400">
+        <div className="rounded-xl bg-success/10 p-3">
+          <p className="text-[11px] text-success font-medium">Économie / an</p>
+          <p className="font-figure text-base font-semibold text-success">
             +{formatMGA(result.annualSaved)}
           </p>
         </div>
@@ -156,9 +156,9 @@ function SavingsPlanSimulator({ goals }) {
                 tickFormatter={(v) => new Intl.NumberFormat("fr-FR", { notation: "compact" }).format(v)}
                 fontSize={11}
               />
-              <Tooltip formatter={(v) => formatMGA(v)} labelFormatter={(m) => `Mois ${m}`} />
+              <Tooltip formatter={(v) => formatMGA(v)} labelFormatter={(m) => `Mois ${m}`} contentStyle={{ fontFamily: "var(--font-body)", borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--popover))", color: "hsl(var(--popover-foreground))" }} />
               {target > 0 && (
-                <ReferenceLine y={target} stroke="#059669" strokeDasharray="4 4" label={{ value: "Objectif", fontSize: 10, fill: "#059669" }} />
+                <ReferenceLine y={target} stroke="hsl(var(--success))" strokeDasharray="4 4" label={{ value: "Objectif", fontSize: 10, fill: "hsl(var(--success))" }} />
               )}
               <Area type="monotone" dataKey="amount" stroke="hsl(var(--primary))" fill="url(#whatifGradient)" strokeWidth={2} />
             </AreaChart>
@@ -177,7 +177,7 @@ function SavingsPlanSimulator({ goals }) {
           </p>
         )}
         {goal && projection?.reached === true && (
-          <p className="text-xs text-emerald-600 font-medium">Cet objectif est déjà atteint 🎉</p>
+          <p className="text-xs text-success font-medium">Cet objectif est déjà atteint 🎉</p>
         )}
       </div>
     </div>
@@ -186,10 +186,10 @@ function SavingsPlanSimulator({ goals }) {
 
 export default function WhatIfSimulator({ depensesParCategorie, kpis, goals }) {
   return (
-    <div className="bg-card rounded-2xl border border-border p-5 shadow-sm space-y-4">
+    <div className="bg-card rounded-2xl border border-border p-5 shadow-warm-sm space-y-4">
       <div className="flex items-center gap-2">
-        <span className="h-9 w-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-          <Wand2 className="h-4.5 w-4.5" />
+        <span className="h-9 w-9 rounded-xl bg-accent/15 text-accent flex items-center justify-center shrink-0">
+          <Wand2 className="h-4 w-4" />
         </span>
         <div>
           <p className="font-heading font-semibold">Simulateur "et si"</p>

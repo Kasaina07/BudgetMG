@@ -1,7 +1,8 @@
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { formatMGA } from "@/lib/budgetCategories";
 
-const COLORS = ["#0f766e", "#0891b2", "#7c3aed", "#db2777", "#ea580c", "#65a30d", "#0369a1", "#9333ea", "#d97706", "#dc2626"];
+// Palette dérivée des tokens du design system (émeraude → or → nuances chaudes/froides complémentaires).
+const COLORS = ["#1B5E4F", "#C98A2C", "#2E9468", "#C1432A", "#5A8A96", "#8C6A3F", "#3F7A6B", "#B98A5C", "#6E5B8C", "#A25A3E"];
 
 export default function ExpensePieChart({ data }) {
   if (!data || data.length === 0) {
@@ -29,12 +30,21 @@ export default function ExpensePieChart({ data }) {
             <Cell key={i} fill={COLORS[i % COLORS.length]} />
           ))}
         </Pie>
-        <Tooltip formatter={(value) => formatMGA(value)} />
+        <Tooltip
+          formatter={(value) => formatMGA(value)}
+          contentStyle={{
+            fontFamily: "var(--font-body)",
+            borderRadius: 12,
+            border: "1px solid hsl(var(--border))",
+            background: "hsl(var(--popover))",
+            color: "hsl(var(--popover-foreground))",
+          }}
+        />
         <Legend
           layout="vertical"
           align="right"
           verticalAlign="middle"
-          wrapperStyle={{ fontSize: 12, maxWidth: 140 }}
+          wrapperStyle={{ fontSize: 12, maxWidth: 140, fontFamily: "var(--font-body)" }}
         />
       </PieChart>
     </ResponsiveContainer>

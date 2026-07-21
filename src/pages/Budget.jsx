@@ -29,15 +29,17 @@ export default function Budget() {
   return (
     <div className="p-6 md:p-8 space-y-6">
       <div>
+        <p className="text-xs font-medium text-accent uppercase tracking-wide mb-1">Prévisionnel</p>
         <h1 className="text-2xl font-heading font-semibold tracking-tight">
-          Budget annuel prévisionnel
+          Budget annuel
         </h1>
         <p className="text-sm text-muted-foreground">
           Prévisions mensuelles par catégorie — année {year}
+          <span className="md:hidden"> · faites glisser le tableau pour voir tous les mois →</span>
         </p>
       </div>
 
-      <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+      <div className="bg-card rounded-2xl border border-border shadow-warm-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm border-collapse">
             <thead className="bg-muted/50 text-muted-foreground">
@@ -87,12 +89,12 @@ export default function Budget() {
                               key={`${cat}-${m}-${value}`}
                               defaultValue={value}
                               onBlur={(e) => updateCell(cat, m, e.target.value)}
-                              className="w-full bg-transparent text-right tabular-nums px-2 py-1.5 rounded-lg border border-transparent hover:border-border focus:border-ring focus:bg-card focus:outline-none"
+                              className="font-figure w-full bg-transparent text-right px-2 py-1.5 rounded-lg border border-transparent hover:border-border focus:border-ring focus:bg-card focus:outline-none"
                             />
                           </td>
                         );
                       })}
-                      <td className="px-4 py-1.5 text-right font-medium tabular-nums">
+                      <td className="font-figure px-4 py-1.5 text-right font-medium">
                         {formatMGA(rowTotal(cat))}
                       </td>
                       <td className="px-2 py-1.5 text-center">
@@ -111,11 +113,11 @@ export default function Budget() {
                       Sous-total {g.group}
                     </td>
                     {MONTHS.map((_, i) => (
-                      <td key={i} className="px-3 py-2 text-right tabular-nums text-xs text-muted-foreground">
+                      <td key={i} className="font-figure px-3 py-2 text-right text-xs text-muted-foreground">
                         {Math.round(groupTotal(g, i + 1) / 1000)}k
                       </td>
                     ))}
-                    <td className="px-4 py-2 text-right font-medium tabular-nums">
+                    <td className="font-figure px-4 py-2 text-right font-medium">
                       {formatMGA(groupAnnual(g))}
                     </td>
                     <td></td>
