@@ -19,7 +19,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { runSync } from "@/services/sync";
-import { countDirty, getMeta } from "@/services/storage";
+import { subscribeToRemoteChanges } from "@/services/supabase";
+import { countDirty, getMeta, mergeRemote, setMeta } from "@/services/storage";
 import { useToast } from "@/components/ui/use-toast";
 
 const BASE_RETRY_DELAY_MS = 5_000; // 5 secondes
@@ -110,6 +111,38 @@ export function useOfflineSync() {
       clearTimeout(debounceRef.current);
     };
   }, [syncNow, refreshPendingCount]);
+
+  // --- Sync au retour au premier plan --------------------------------
+  // Cas le plus fréquent en pratique : on a saisi des transactions sur le PC,
+  // puis on rouvre l'app (onglet, ou app mobile remise au premier plan) sur
+  // le téléphone. On ne veut pas attendre le prochain tick des 60s pour ça.
+  useEffect(() => {
+    function handleVisible() {
+      if (document.visibilityState === "visible" && navigator.onLine) syncNow();
+    }
+    document.addEventListener("visibilitychange", handleVisible);
+    window.addEventListener("focus", handleVisible);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisible);
+      window.removeEventListener("focus", handleVisible);
+    };
+  }, [syncNow]);
+
+  // --- Realtime : reçoit quasi instantanément les changements faits sur un
+  // autre appareil, sans attendre le prochain pull périodique. Le polling
+  // reste actif en filet de sécurité (Realtime peut être temporairement
+  // indisponible, ou pas encore activé côté projet Supabase).
+  useEffect(() => {
+    if (!user) return undefined;
+
+    const unsubscribe = subscribeToRemoteChanges(user.id, (table, remoteRecord) => {
+      mergeRemote(table, remoteRecord);
+      setMeta({ lastSyncedAt: new Date().toISOString() });
+      refreshPendingCount();
+    });
+
+    return unsubscribe;
+  }, [user, refreshPendingCount]);
 
   // --- Sync au montage + filet de sécurité périodique -------------------
   useEffect(() => {

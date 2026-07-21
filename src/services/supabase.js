@@ -109,3 +109,40 @@ export async function remoteListSince(table, isoDate) {
   if (error) throw error;
   return data;
 }
+
+// ----------------------------------------------------------------------------
+// Realtime — pousse les changements d'un appareil vers les autres quasi
+// instantanément (en plus du pull périodique, qui reste un filet de sécurité
+// si Realtime est indisponible ou pas encore activé côté projet Supabase).
+// ----------------------------------------------------------------------------
+
+/**
+ * S'abonne aux INSERT/UPDATE Postgres de l'utilisateur sur les 3 tables, et
+ * appelle `onChange(appTable, remoteRecord)` à chaque événement. Retourne une
+ * fonction de désabonnement à appeler au démontage / changement d'utilisateur.
+ *
+ * IMPORTANT : nécessite que la réplication "Realtime" soit activée pour ces
+ * tables dans le projet Supabase (Database > Replication), sans quoi aucun
+ * événement ne sera reçu (le pull périodique continue de fonctionner, lui).
+ */
+export function subscribeToRemoteChanges(userId, onChange) {
+  if (!userId) return () => {};
+
+  const channel = supabase.channel(`sync-${userId}`);
+
+  for (const [appTable, remoteTable] of Object.entries(REMOTE_TABLES)) {
+    channel.on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: remoteTable, filter: `user_id=eq.${userId}` },
+      (payload) => {
+        if (payload.new && Object.keys(payload.new).length > 0) onChange(appTable, payload.new);
+      }
+    );
+  }
+
+  channel.subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}
