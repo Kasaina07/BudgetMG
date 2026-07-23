@@ -105,7 +105,7 @@ export default function ResetPassword() {
           </form>
         </div>
         <p className="text-[11px] text-center text-muted-foreground/60 mt-6">
-  © {new Date().getFullYear()} Budget MGA
+  © {new Date().getFullYear()} Budget MG
 </p>
       </div>
     </div>

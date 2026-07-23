@@ -227,7 +227,7 @@ export default function Login() {
           <span className="h-8 w-8 rounded-lg bg-white/10 text-white flex items-center justify-center">
             <Wallet className="h-4 w-4" />
           </span>
-          <span className="text-white font-display font-semibold">Kasaina</span>
+          <span className="text-white font-display font-semibold">Budget MG</span>
         </div>
       </div>
     </div>
