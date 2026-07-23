@@ -25,7 +25,7 @@ export default function Layout() {
             <span className="h-8 w-8 rounded-lg bg-accent text-accent-foreground flex items-center justify-center">
               <Coins className="h-4 w-4" strokeWidth={2.25} />
             </span>
-            <span className="font-heading font-semibold tracking-tight">Kasaina</span>
+            <span className="font-heading font-semibold tracking-tight">Budget MG</span>
           </div>
           <div className="flex items-center gap-3">
             <SyncStatus />
@@ -54,7 +54,7 @@ export default function Layout() {
               <Coins className="h-4.5 w-4.5" strokeWidth={2.25} />
             </span>
             <div>
-              <p className="font-heading font-semibold leading-tight tracking-tight">Kasaina</p>
+              <p className="font-heading font-semibold leading-tight tracking-tight">Budget MG</p>
               <p className="text-xs text-sidebar-foreground/50">budget · {new Date().getFullYear()}</p>
             </div>
           </div>
