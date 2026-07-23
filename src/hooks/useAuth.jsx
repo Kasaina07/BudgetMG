@@ -23,7 +23,7 @@
 // ============================================================================
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
-import { supabase } from "@/services/supabase";
+import { supabase, setRememberMe } from "@/services/supabase";
 import { resetDB, setMeta } from "@/services/storage";
 
 const AuthContext = createContext(undefined);
@@ -66,7 +66,12 @@ export function AuthProvider({ children }) {
     return data;
   }, []);
 
-  const signIn = useCallback(async (email, password) => {
+  const signIn = useCallback(async (email, password, rememberMe = true) => {
+    // Doit être fait AVANT signInWithPassword : l'adaptateur de stockage lit ce
+    // drapeau au moment où le SDK écrit la nouvelle session (localStorage si
+    // "Se souvenir de moi" est coché, sessionStorage sinon — effacée à la
+    // fermeture de l'onglet).
+    setRememberMe(rememberMe);
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
     setMeta({ userId: data.session?.user?.id ?? null });

@@ -75,7 +75,7 @@ export default function Login() {
     setSubmitting(true);
     try {
       if (mode === "signin") {
-        await signIn(form.email, form.password);
+        await signIn(form.email, form.password, rememberMe);
       } else if (mode === "signup") {
         await signUp(form.email, form.password);
         toast({

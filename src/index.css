@@ -1,4 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap');
+/* Les polices (Space Grotesk, IBM Plex Sans, IBM Plex Mono) sont chargées
+   depuis index.html via <link rel="preconnect"> + <link rel="stylesheet">
+   plutôt qu'avec un @import ici : un @import CSS est bloquant pour le rendu,
+   ce qui pénalise le First Contentful Paint sur les connexions lentes. */
 
 @tailwind base;
 @tailwind components;
@@ -14,8 +17,11 @@
     --popover: 0 0% 100%;
     --popover-foreground: 156 16% 12%;
 
-    /* Bleu clair — couleur de marque : confiance, clarté. */
-    --primary: 204 59% 45%;
+    /* Bleu clair — couleur de marque : confiance, clarté.
+       Luminosité calibrée à 42% (plutôt que 45%) pour atteindre ~4.5:1 de
+       contraste sur le fond de page quand --primary sert de couleur de texte
+       (liens, "text-primary"), conformément au niveau WCAG AA. */
+    --primary: 204 59% 42%;
     --primary-foreground: 203 67% 98%;
 
     --secondary: 40 35% 92%;
@@ -23,26 +29,35 @@
     --muted: 40 35% 92%;
     --muted-foreground: 35 11% 38%;
 
-    /* Or / ocre — accent de mise en avant, utilisé avec parcimonie (jamais en fond de page). */
-    --accent: 36 64% 48%;
+    /* Or / ocre — accent de mise en avant, utilisé avec parcimonie (jamais en fond de page).
+       Luminosité calibrée à 36% (plutôt que 48%) : à 48%, "text-accent" ne tenait
+       qu'à ~2.8:1 sur le fond de page (utilisé pour les libellés en majuscules
+       en haut de chaque page) — bien en dessous du seuil WCAG AA de 4.5:1. */
+    --accent: 36 64% 36%;
     --accent-foreground: 35 84% 12%;
 
     --destructive: 10 64% 46%;
     --destructive-foreground: 40 35% 97%;
-    --success: 154 53% 38%;
+    /* Luminosité calibrée à 33% (plutôt que 38%) pour atteindre ~4.5:1 sur le
+       fond de page quand --success sert de couleur de texte (KPI, badges). */
+    --success: 154 53% 33%;
     --success-foreground: 144 38% 97%;
-    --warning: 35 71% 42%;
+    /* Idem, calibrée à 36% (plutôt que 42%) pour --warning. */
+    --warning: 35 71% 36%;
     --warning-foreground: 40 35% 97%;
 
     --border: 39 26% 87%;
     --input: 39 26% 87%;
-    --ring: 204 59% 45%;
+    --ring: 204 59% 42%;
 
     --chart-1: 204 59% 45%;
     --chart-2: 36 64% 48%;
     --chart-3: 154 40% 55%;
     --chart-4: 10 55% 55%;
     --chart-5: 200 35% 45%;
+    --chart-6: 280 28% 55%;
+    --chart-7: 165 35% 42%;
+    --chart-8: 25 60% 50%;
 
     --radius: 0.9rem;
 
@@ -73,7 +88,7 @@
     --popover-foreground: 44 15% 91%;
 
     --primary: 201 68% 62%;
-    --primary-foreground: 201 71% 11%;
+    --primary-foreground: 201 71% 50%;
 
     --secondary: 204 22% 16%;
     --secondary-foreground: 44 15% 91%;
@@ -99,6 +114,9 @@
     --chart-3: 154 30% 60%;
     --chart-4: 9 60% 62%;
     --chart-5: 200 40% 60%;
+    --chart-6: 280 32% 68%;
+    --chart-7: 165 32% 58%;
+    --chart-8: 25 55% 62%;
 
     --shadow-color: 204 45% 3%;
 

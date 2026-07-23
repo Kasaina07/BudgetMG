@@ -25,10 +25,47 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
+// ----------------------------------------------------------------------------
+// "Se souvenir de moi" — implémenté via un adaptateur de stockage dynamique.
+//
+// Le SDK Supabase persiste la session dans un seul emplacement fixé à la
+// création du client. Pour permettre à l'utilisateur de choisir, à chaque
+// connexion, si la session doit survivre à la fermeture du navigateur, on lui
+// fournit un objet "storage" custom qui redirige vers localStorage (persiste)
+// ou sessionStorage (effacée à la fermeture de l'onglet) selon un simple
+// drapeau — mis à jour juste avant l'appel à signInWithPassword.
+// ----------------------------------------------------------------------------
+const REMEMBER_ME_KEY = "kasaina:remember-me";
+
+function getRememberMe() {
+  // Par défaut true : conserve le comportement historique (session persistante)
+  // pour toute session déjà ouverte avant ce changement, ou créée sans passer
+  // par le formulaire de connexion (ex. lien de confirmation d'inscription).
+  const stored = window.localStorage.getItem(REMEMBER_ME_KEY);
+  return stored === null ? true : stored === "true";
+}
+
+/** À appeler juste avant signIn() avec le choix de la case "Se souvenir de moi". */
+export function setRememberMe(remember) {
+  window.localStorage.setItem(REMEMBER_ME_KEY, remember ? "true" : "false");
+}
+
+const dynamicAuthStorage = {
+  getItem: (key) => (getRememberMe() ? window.localStorage : window.sessionStorage).getItem(key),
+  setItem: (key, value) => (getRememberMe() ? window.localStorage : window.sessionStorage).setItem(key, value),
+  removeItem: (key) => {
+    // On nettoie les deux emplacements : la session a pu être écrite dans l'un
+    // ou l'autre selon le choix fait à la connexion.
+    window.localStorage.removeItem(key);
+    window.sessionStorage.removeItem(key);
+  },
+};
+
 export const supabase = createClient(supabaseUrl ?? "", supabaseAnonKey ?? "", {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
+    storage: dynamicAuthStorage,
     detectSessionInUrl: true,
   },
 });

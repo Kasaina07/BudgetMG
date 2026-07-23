@@ -1,8 +1,6 @@
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { formatMGA } from "@/lib/budgetCategories";
-
-// Palette dérivée des tokens du design system (bleu clair → or → nuances chaudes/froides complémentaires).
-const COLORS = ["#2F82B8", "#C98A2C", "#2E9468", "#C1432A", "#5A8A96", "#8C6A3F", "#3F6E8C", "#B98A5C", "#6E5B8C", "#A25A3E"];
+import { getChartColor } from "@/lib/chartColors";
 
 export default function ExpensePieChart({ data }) {
   if (!data || data.length === 0) {
@@ -27,7 +25,7 @@ export default function ExpensePieChart({ data }) {
           paddingAngle={2}
         >
           {data.map((_, i) => (
-            <Cell key={i} fill={COLORS[i % COLORS.length]} />
+            <Cell key={i} fill={getChartColor(i)} />
           ))}
         </Pie>
         <Tooltip

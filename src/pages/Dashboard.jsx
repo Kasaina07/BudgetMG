@@ -61,6 +61,7 @@ export default function Dashboard() {
           <select
             value={month}
             onChange={(e) => setMonth(Number(e.target.value))}
+            aria-label="Sélectionner le mois affiché"
             className="rounded-xl border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           >
             {MONTHS.map((m, i) => (
@@ -72,6 +73,7 @@ export default function Dashboard() {
           <select
             value={year}
             onChange={(e) => setYear(Number(e.target.value))}
+            aria-label="Sélectionner l'année affichée"
             className="rounded-xl border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           >
             {[2025, 2026, 2027].map((y) => (

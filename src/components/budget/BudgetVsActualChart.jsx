@@ -34,8 +34,10 @@ export default function BudgetVsActualChart({ data }) {
           }}
         />
         <Legend wrapperStyle={{ fontSize: 12, fontFamily: "var(--font-body)" }} />
-        <Bar dataKey="Prévu" fill="#C9BFA8" radius={[5, 5, 0, 0]} />
-        <Bar dataKey="Réel" fill="#2F82B8" radius={[5, 5, 0, 0]} />
+        {/* "Prévu" en gris neutre (référence discrète), "Réel" dans la couleur de marque
+            (--chart-1, alignée sur --primary) — cohérent avec le thème clair et sombre. */}
+        <Bar dataKey="Prévu" fill="hsl(var(--muted-foreground) / 0.35)" radius={[5, 5, 0, 0]} />
+        <Bar dataKey="Réel" fill="hsl(var(--chart-1))" radius={[5, 5, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

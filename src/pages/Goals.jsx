@@ -6,6 +6,7 @@ import { useToast } from "@/components/ui/use-toast";
 import EmptyState from "@/components/EmptyState";
 import { CardSkeleton } from "@/components/Skeletons";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import ConfirmDialog from "@/components/ConfirmDialog";
 import { formatMGA } from "@/lib/budgetCategories";
 import { formatMonthYear, projectGoalDate } from "@/lib/projections";
 import WhatIfSimulator from "@/components/goals/WhatIfSimulator";
@@ -90,6 +91,7 @@ export default function Goals() {
   const [saving, setSaving] = useState(false);
   const [addAmounts, setAddAmounts] = useState({});
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [goalToDelete, setGoalToDelete] = useState(null);
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -111,9 +113,14 @@ export default function Goals() {
   }
 
   function handleDelete(goal) {
-    if (!window.confirm(`Supprimer l'objectif "${goal.name}" ?`)) return;
-    removeGoal(goal.id);
-    toast({ title: "Objectif supprimé", description: goal.name });
+    setGoalToDelete(goal);
+  }
+
+  function confirmDeleteGoal() {
+    if (!goalToDelete) return;
+    removeGoal(goalToDelete.id);
+    toast({ title: "Objectif supprimé", description: goalToDelete.name });
+    setGoalToDelete(null);
   }
 
   function handleAddFunds(goal) {
@@ -249,6 +256,19 @@ export default function Goals() {
           </form>
         </SheetContent>
       </Sheet>
+
+      <ConfirmDialog
+        open={!!goalToDelete}
+        onOpenChange={(open) => !open && setGoalToDelete(null)}
+        title="Supprimer cet objectif ?"
+        description={
+          goalToDelete
+            ? `"${goalToDelete.name}" sera définitivement supprimé. Cette action est irréversible.`
+            : undefined
+        }
+        confirmLabel="Supprimer"
+        onConfirm={confirmDeleteGoal}
+      />
     </div>
   );
 }
